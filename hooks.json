@@ -1,0 +1,12 @@
+{
+  "user-prompt-submit": {
+    "command": "node",
+    "args": [".claude/check-dependencies-hook.js"],
+    "description": "Prevent modifying dependencies with <10 days"
+  },
+  "tool-use": {
+    "command": "node",
+    "args": [".claude/tool-use-orchestrator.js"],
+    "description": "Run multiple checks: import validation + lint"
+  }
+}
