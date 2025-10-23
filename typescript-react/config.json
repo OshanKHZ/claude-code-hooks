@@ -1,0 +1,52 @@
+{
+  "typescript": {
+    "enabled": true,
+    "timeout": 15000,
+    "showDependencyErrors": false,
+    "skipLibCheck": true
+  },
+  "eslint": {
+    "enabled": true,
+    "autofix": true,
+    "timeout": 30000
+  },
+  "prettier": {
+    "enabled": true,
+    "timeout": 10000
+  },
+  "imports": {
+    "enabled": true,
+    "checkFeatureBoundaries": true,
+    "timeout": 5000
+  },
+  "dependencies": {
+    "enabled": true,
+    "trustedPackages": [
+      "react",
+      "next",
+      "typescript",
+      "tailwindcss",
+      "lodash",
+      "axios",
+      "express",
+      "@radix-ui",
+      "@tanstack",
+      "lucide-react",
+      "clsx",
+      "zod",
+      "recharts",
+      "date-fns",
+      "@supabase",
+      "framer-motion",
+      "react-hook-form",
+      "jotai"
+    ],
+    "allowBypass": true,
+    "typoDetection": true
+  },
+  "orchestrator": {
+    "parallel": true,
+    "stopOnFirstError": true,
+    "verbose": false
+  }
+}

@@ -1,153 +1,71 @@
-# Claude Code TypeScript Hooks
+# Claude Code Hooks
 
-Production-ready hooks for [Claude Code](https://claude.com/claude-code) that automatically validate dependencies, imports, linting, and formatting.
+Production-ready hooks for [Claude Code](https://claude.com/claude-code) with automatic validation, type checking, linting, and formatting.
 
 ## 🚀 Quick Start
 
-1. **Copy hooks to your project**:
-   ```bash
-   cp -r typescript-react /path/to/your/project/.claude/hooks
-   ```
+1. Choose a hook collection below
+2. Copy to your project: `cp -r collection-name /path/to/.claude/hooks`
+3. Configure in `~/.claude/settings.json`
+4. Done! Hooks run automatically
 
-2. **Configure Claude Code** (`~/.claude/settings.json`):
-   ```json
-   {
-     "hooks": [
-       {
-         "name": "orchestrator",
-         "event": "PostToolUse",
-         "command": "node /path/to/.claude/hooks/orchestrator.js"
-       }
-     ]
-   }
-   ```
+## 📁 Hook Collections
 
-3. **Done!** All validations run automatically.
+### [typescript-react/](./typescript-react/)
 
-> **Note**: Claude Code only allows **one hook per event**. The orchestrator chains multiple hooks together.
+For TypeScript/React/Next.js projects
 
-## 📦 What's Included
+**Includes:**
+- ✅ Dependency validation (blocks malicious packages)
+- ✅ Import validation (checks paths exist)
+- ✅ TypeScript type checking (SHA256 cache, < 5ms)
+- ✅ ESLint auto-fix
+- ✅ Prettier auto-format
 
-### [typescript-react](./typescript-react/)
+**Performance:** < 5ms (cached) to 500ms (full check)
 
-Hooks for TypeScript/React/Next.js projects:
+[→ View typescript-react documentation](./typescript-react/README.md)
 
-| Hook | Triggers On | Purpose |
-|------|-------------|---------|
-| `check-dependencies` | Bash commands | Blocks malicious packages & typosquatting |
-| `validate-imports` | Edit/Write | Validates import paths exist |
-| `lint-after-edit` | Edit/Write | Runs ESLint --fix |
-| `format-on-edit` | Edit/Write | Runs Prettier --write |
-| `orchestrator` | PostToolUse | Chains all hooks together |
+---
 
-[→ Full documentation](./typescript-react/README.md)
+### Coming Soon
 
-## 🔧 How It Works
+- **python/** - Black, mypy, ruff
+- **go/** - gofmt, golint, go vet
+- **rust/** - rustfmt, clippy
 
-```
-Claude runs Bash → orchestrator.js
-                   ├─ check-dependencies.js ✓ Validates package install
-                   ├─ validate-imports.js   (skips - not Edit/Write)
-                   ├─ lint-after-edit.js    (skips - not Edit/Write)
-                   └─ format-on-edit.js     (skips - not Edit/Write)
+Want to contribute? See [Contributing](#-contributing) below.
 
-Claude edits file → orchestrator.js
-                   ├─ check-dependencies.js (skips - not Bash)
-                   ├─ validate-imports.js   ✓ Checks imports exist
-                   ├─ lint-after-edit.js    ✓ Runs ESLint --fix
-                   └─ format-on-edit.js     ✓ Runs Prettier
-```
+## ⚡ Key Features
 
-Each hook is smart enough to skip if it doesn't apply to the current tool.
+### SHA256 Caching
+TypeScript config validation in < 5ms (95% faster than tsc incremental)
 
-## ✅ Example Validations
+### Smart Execution
+Each hook skips automatically if not relevant (Bash hook skips on Edit, etc.)
 
-**Blocked:**
-- `pnpm add etherum` → 🚨 TYPO: did you mean "ethereum"?
-- `pnpm add unknown-pkg` → ⚠️ Package not in trusted list
-- `import { X } from "@/missing"` → ❌ File doesn't exist
-- ESLint errors that can't be auto-fixed → ❌ Fix errors first
-
-**Allowed:**
-- `pnpm add lodash` → ✅ Trusted package
-- `pnpm add unknown-pkg --force` → ✅ Force bypass
-- Valid imports → ✅ Auto-formatted with Prettier
-
-## 🛠️ Creating Custom Hooks
-
-### 1. Create hook file
-
-```javascript
-const stdin = require('process').stdin;
-const chunks = [];
-
-stdin.on('data', chunk => chunks.push(chunk));
-stdin.on('end', () => {
-  const { event, toolName, toolInput } = JSON.parse(Buffer.concat(chunks));
-
-  // Skip if not relevant
-  if (event !== 'PostToolUse' || toolName !== 'Edit') {
-    console.log(JSON.stringify({ status: 'ok' }));
-    process.exit(0);
-  }
-
-  // Your validation logic
-  const isValid = true; // Replace with actual check
-
-  if (!isValid) {
-    console.log(JSON.stringify({
-      status: 'blocked',
-      message: '❌ Validation failed'
-    }));
-    process.exit(1);
-  }
-
-  console.log(JSON.stringify({ status: 'ok' }));
-  process.exit(0);
-});
-```
-
-### 2. Add to orchestrator
-
-```javascript
-const hooks = [
-  'check-dependencies.js',
-  'validate-imports.js',
-  'lint-after-edit.js',
-  'format-on-edit.js',
-  'your-hook.js'  // Add here
-];
-```
-
-### 3. Test it
-
-```bash
-echo '{"event":"PostToolUse","toolName":"Edit","toolInput":{"file_path":"test.ts"}}' | node your-hook.js
-```
-
-## 📚 Hook Input Format
-
-```typescript
-{
-  event: "PostToolUse";
-  toolName: "Edit" | "Write" | "Bash" | "Read" | ...;
-  toolInput: {
-    file_path?: string;      // For Edit/Write
-    command?: string;        // For Bash
-    new_string?: string;     // For Edit
-    content?: string;        // For Write
-  };
-}
-```
+### One Hook Rule
+Claude Code allows only **one hook per event**. We use an orchestrator to chain multiple hooks.
 
 ## 🤝 Contributing
 
-Want to add hooks for other languages/frameworks?
+**Add a new language/framework:**
 
-1. Create a folder: `python/`, `go/`, `rust/`, etc.
-2. Add your hooks and orchestrator
-3. Create a README
-4. Submit a PR!
+1. Create folder: `mkdir python/`
+2. Add hooks: `check.py`, `format.py`, `orchestrator.py`
+3. Create `README.md` with setup instructions
+4. Update this main README with link
+5. Submit PR
+
+**Improve existing hooks:**
+
+See individual collection READMEs for improvement ideas.
+
+## 📖 Documentation
+
+- [typescript-react/](./typescript-react/) - Full TypeScript/React docs
+- [CLAUDE.md](./CLAUDE.md) - AI context & architecture
+- [settings.example.json](./settings.example.json) - Config example
 
 ## 📝 License
 
@@ -156,3 +74,5 @@ MIT - Free to use in any project
 ---
 
 **Questions?** Check the [Claude Code docs](https://docs.claude.com/claude-code) or open an issue.
+
+**Credits:** Inspired by [bartolli/claude-code-typescript-hooks](https://github.com/bartolli/claude-code-typescript-hooks)

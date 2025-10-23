@@ -113,22 +113,46 @@ stdin.on('end', async () => {
   }
 
   if (invalidImports.length > 0) {
-    let message = '🚨 Imports inválidos detectados:\n\n';
+    let message = '❌ Invalid imports detected:\n\n';
+    const errors = [];
 
     for (const { file, import: imp, resolved } of invalidImports) {
-      message += `❌ ${file}\n`;
-      message += `   import: "${imp}"\n`;
-      message += `   caminho: ${resolved}\n\n`;
-    }
+      // Try to find similar files for suggestions
+      const dir = path.dirname(path.join(projectRoot, resolved));
+      let suggestion = null;
 
-    message += '💡 Verifique se:\n';
-    message += '   - O arquivo existe no caminho correto\n';
-    message += '   - O alias está configurado corretamente\n';
-    message += '   - O nome do arquivo está correto (maiúsculas/minúsculas)';
+      if (fs.existsSync(dir)) {
+        const files = fs.readdirSync(dir);
+        const baseName = path.basename(resolved);
+        const similar = files.find(f =>
+          f.toLowerCase() === baseName.toLowerCase() ||
+          f.toLowerCase().startsWith(baseName.toLowerCase())
+        );
+        if (similar) {
+          suggestion = `Did you mean: "${imp.replace(baseName, similar)}"?`;
+        }
+      }
+
+      message += `   ${file}\n`;
+      message += `   Import: "${imp}"\n`;
+      message += `   Path: ${resolved}\n`;
+      if (suggestion) {
+        message += `   💡 ${suggestion}\n`;
+      }
+      message += '\n';
+
+      errors.push({
+        file,
+        import: imp,
+        resolved,
+        suggestion
+      });
+    }
 
     console.log(JSON.stringify({
       status: 'blocked',
-      message: message
+      message: message.trim(),
+      details: { errors, count: errors.length }
     }));
     process.exit(1);
     return;
