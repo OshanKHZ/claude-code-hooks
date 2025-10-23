@@ -78,7 +78,6 @@ Comprehensive unit test suite ensuring reliability and quality.
 | **Hook Tests** | 138/138 (100%) ✨ |
 | **Utility Tests** | 26/29 (89.7%) |
 | **Test Framework** | Vitest |
-| **Coverage** | 80%+ |
 
 ```bash
 # Install dependencies
@@ -145,18 +144,6 @@ We welcome contributions! Here's how you can help:
 ### Improve Existing Hooks
 
 See individual collection READMEs for improvement ideas and contribution guidelines.
-
----
-
-## 📊 Project Statistics
-
-| Metric | Value |
-|--------|-------|
-| **Lines of Code** | ~5,000+ (hooks + tests) |
-| **Hooks Available** | 5 (TypeScript/React) |
-| **Test Files** | 10 |
-| **Documentation Files** | 7 |
-| **Dependencies** | 0 (runtime), 3 (dev) |
 
 ---
 
