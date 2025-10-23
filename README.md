@@ -1,5 +1,10 @@
 # Claude Code Hooks
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://img.shields.io/badge/tests-166%20passing-brightgreen.svg)](./TESTING_QUICKSTART.md)
+[![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com)
+
 Production-ready hooks for [Claude Code](https://claude.com/claude-code) with automatic validation, type checking, linting, and formatting.
 
 ## 🚀 Quick Start
@@ -61,9 +66,21 @@ Claude Code allows only **one hook per event**. We use an orchestrator to chain 
 
 See individual collection READMEs for improvement ideas.
 
+## 🧪 Testing
+
+Comprehensive test suite with 166+ passing tests covering all hooks.
+
+```bash
+npm install    # Install test dependencies
+npm test       # Run all tests
+```
+
+See [TESTING_QUICKSTART.md](./TESTING_QUICKSTART.md) for details.
+
 ## 📖 Documentation
 
 - [typescript-react/](./typescript-react/) - Full TypeScript/React docs
+- [TESTING_QUICKSTART.md](./TESTING_QUICKSTART.md) - Test guide
 - [CLAUDE.md](./CLAUDE.md) - AI context & architecture
 - [settings.example.json](./settings.example.json) - Config example
 

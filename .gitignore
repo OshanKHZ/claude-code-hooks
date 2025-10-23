@@ -11,10 +11,14 @@ Thumbs.db
 *.swp
 *.swo
 
-# Test files
-test/
-*.test.js
+# Test coverage and artifacts
 coverage/
+.vitest/
+*.tsbuildinfo
+
+# Test cache files
+typescript-react/tsconfig-cache.json
+typescript-react/typecheck-results-cache.json
 
 # Logs
 *.log

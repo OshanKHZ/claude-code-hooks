@@ -1,0 +1,26 @@
+{
+  "name": "claude-code-hooks",
+  "version": "1.0.0",
+  "description": "Reusable hooks for Claude Code that enhance TypeScript development workflows",
+  "type": "commonjs",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui"
+  },
+  "keywords": [
+    "claude-code",
+    "hooks",
+    "typescript",
+    "react",
+    "validation"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@vitest/coverage-v8": "^1.6.1",
+    "@vitest/ui": "^1.6.1",
+    "vitest": "^1.6.1"
+  }
+}
