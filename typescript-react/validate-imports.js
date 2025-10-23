@@ -61,63 +61,54 @@ function checkFileExists(filePath, projectRoot) {
 stdin.on('data', (chunk) => chunks.push(chunk));
 stdin.on('end', async () => {
   const input = JSON.parse(Buffer.concat(chunks).toString());
-  const projectRoot = path.resolve(__dirname, '..');
+  const { event, toolName, toolInput } = input;
+  const projectRoot = path.resolve(__dirname, '../..');
 
-  // Bypass com "skip-import-check"
-  if (/\bskip-import-check\b/i.test(input.prompt)) {
-    console.log(JSON.stringify({
-      status: 'ok',
-      message: '⏭️ Validação de imports ignorada'
-    }));
+  // Só processa Edit e Write
+  if (event !== 'PostToolUse' || !['Edit', 'Write'].includes(toolName)) {
+    console.log(JSON.stringify({ status: 'ok' }));
     process.exit(0);
     return;
   }
 
+  const filePath = toolInput?.file_path || '';
+
+  // Apenas valida arquivos TS/TSX/JS/JSX
+  if (!/\.(ts|tsx|js|jsx)$/.test(filePath)) {
+    console.log(JSON.stringify({ status: 'ok' }));
+    process.exit(0);
+    return;
+  }
+
+  let content = '';
+  if (toolName === 'Edit') {
+    content = toolInput?.new_string || '';
+  } else if (toolName === 'Write') {
+    content = toolInput?.content || '';
+  }
+
+  const imports = extractImports(content);
   const invalidImports = [];
 
-  if (input.tool_uses) {
-    for (const tool of input.tool_uses) {
-      // Verifica apenas Edit e Write
-      if (tool.tool_name === 'Edit' || tool.tool_name === 'Write') {
-        let content = '';
+  for (const importPath of imports) {
+    let resolvedPath = importPath;
 
-        if (tool.tool_name === 'Edit') {
-          content = tool.tool_input?.new_string || '';
-        } else if (tool.tool_name === 'Write') {
-          content = tool.tool_input?.content || '';
-        }
+    // Resolve imports relativos
+    if (importPath.startsWith('.')) {
+      const dir = path.dirname(filePath);
+      resolvedPath = path.join(dir, importPath);
+    } else {
+      // Resolve aliases
+      resolvedPath = resolveAlias(importPath);
+    }
 
-        const filePath = tool.tool_input?.file_path || '';
-
-        // Apenas valida arquivos TS/TSX/JS/JSX
-        if (!/\.(ts|tsx|js|jsx)$/.test(filePath)) {
-          continue;
-        }
-
-        const imports = extractImports(content);
-
-        for (const importPath of imports) {
-          let resolvedPath = importPath;
-
-          // Resolve imports relativos
-          if (importPath.startsWith('.')) {
-            const dir = path.dirname(filePath);
-            resolvedPath = path.join(dir, importPath);
-          } else {
-            // Resolve aliases
-            resolvedPath = resolveAlias(importPath);
-          }
-
-          // Verifica se o arquivo existe
-          if (!checkFileExists(resolvedPath, projectRoot)) {
-            invalidImports.push({
-              file: filePath,
-              import: importPath,
-              resolved: resolvedPath
-            });
-          }
-        }
-      }
+    // Verifica se o arquivo existe
+    if (!checkFileExists(resolvedPath, projectRoot)) {
+      invalidImports.push({
+        file: filePath,
+        import: importPath,
+        resolved: resolvedPath
+      });
     }
   }
 
@@ -133,8 +124,7 @@ stdin.on('end', async () => {
     message += '💡 Verifique se:\n';
     message += '   - O arquivo existe no caminho correto\n';
     message += '   - O alias está configurado corretamente\n';
-    message += '   - O nome do arquivo está correto (maiúsculas/minúsculas)\n\n';
-    message += '   Adicione "skip-import-check" para ignorar.';
+    message += '   - O nome do arquivo está correto (maiúsculas/minúsculas)';
 
     console.log(JSON.stringify({
       status: 'blocked',

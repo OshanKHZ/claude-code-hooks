@@ -1,0 +1,21 @@
+{
+  "hooks": [
+    {
+      "name": "orchestrator",
+      "description": "Orchestrates: dependency validation → import validation → linting → formatting",
+      "event": "PostToolUse",
+      "command": "node orchestrator.js"
+    }
+  ],
+  "individual_hooks": {
+    "check-dependencies": "Validates package installations (Bash commands) to prevent malicious dependencies",
+    "validate-imports": "Validates import paths exist and respect feature boundaries (Edit/Write)",
+    "lint-after-edit": "Runs ESLint with --fix after file edits (Edit/Write)",
+    "format-on-edit": "Automatically formats files with Prettier after edits (Edit/Write)"
+  },
+  "notes": [
+    "Claude Code only allows ONE hook per event type",
+    "The orchestrator chains all hooks together in sequence",
+    "Each hook is smart enough to skip if the tool doesn't match (e.g., check-dependencies only runs on Bash)"
+  ]
+}

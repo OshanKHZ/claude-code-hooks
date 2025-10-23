@@ -1,252 +1,158 @@
-# Claude Hooks
+# Claude Code TypeScript Hooks
 
-Hooks personalizados para automação e segurança no desenvolvimento com Claude Code.
+Production-ready hooks for [Claude Code](https://claude.com/claude-code) that automatically validate dependencies, imports, linting, and formatting.
 
-## 📋 Hooks Disponíveis
+## 🚀 Quick Start
 
-### 1. **Dependency Check Hook** (`check-dependencies-hook.js`)
-Previne instalação acidental de pacotes maliciosos ou com typos.
+1. **Copy hooks to your project**:
+   ```bash
+   cp -r typescript-react /path/to/your/project/.claude/hooks
+   ```
 
-**Quando roda:** Antes de cada prompt do usuário (`user-prompt-submit`)
+2. **Configure Claude Code** (`~/.claude/settings.json`):
+   ```json
+   {
+     "hooks": [
+       {
+         "name": "orchestrator",
+         "event": "PostToolUse",
+         "command": "node /path/to/.claude/hooks/orchestrator.js"
+       }
+     ]
+   }
+   ```
 
-**O que faz:**
-- ✅ Valida pacotes contra whitelist de confiáveis
-- 🚨 Detecta typosquatting (ex: `recat` → `react`)
-- 🔒 Bloqueia instalação de pacotes não confiáveis
-- 💡 Permite bypass com palavra-chave `force`
+3. **Done!** All validations run automatically.
 
-**Exemplo:**
-```bash
-# Bloqueado (pacote não confiável)
-❌ "instalar pacote-suspeito"
+> **Note**: Claude Code only allows **one hook per event**. The orchestrator chains multiple hooks together.
 
-# Permitido (bypass)
-✅ "instalar pacote-suspeito force"
+## 📦 What's Included
 
-# Permitido (pacote confiável)
-✅ "instalar @radix-ui/react-dialog"
-```
+### [typescript-react](./typescript-react/)
 
-**Pacotes confiáveis:**
-- `react`, `next`, `typescript`, `tailwindcss`
-- `@radix-ui/*`, `@tanstack/*`
-- `lucide-react`, `clsx`, `zod`, `recharts`
-- `lodash`, `axios`, `express`
+Hooks for TypeScript/React/Next.js projects:
 
----
+| Hook | Triggers On | Purpose |
+|------|-------------|---------|
+| `check-dependencies` | Bash commands | Blocks malicious packages & typosquatting |
+| `validate-imports` | Edit/Write | Validates import paths exist |
+| `lint-after-edit` | Edit/Write | Runs ESLint --fix |
+| `format-on-edit` | Edit/Write | Runs Prettier --write |
+| `orchestrator` | PostToolUse | Chains all hooks together |
 
-### 2. **Import Validation Hook** (`validate-imports-hook.js`)
-Valida se todos os imports existem antes de salvar o arquivo.
+[→ Full documentation](./typescript-react/README.md)
 
-**Quando roda:** Após operações de `Edit` ou `Write` (via `tool-use-orchestrator.js`)
-
-**O que faz:**
-- 🔍 Extrai todos os imports de arquivos TS/TSX/JS/JSX
-- ✅ Verifica se os arquivos importados existem no projeto
-- 🗺️ Resolve aliases (`@/` → `src/`)
-- 📁 Suporta imports relativos (`./ `, `../`)
-- 🚫 **Bloqueia se encontrar imports inválidos**
-- 💡 Permite bypass com palavra-chave `skip-import-check`
-
-**Exemplo:**
-```bash
-# Import inválido detectado
-🚨 Imports inválidos detectados:
-
-❌ src/components/Button.tsx
-   import: "@/shared/components/ui/badge"
-   caminho: src/shared/components/ui/badge
-
-💡 Verifique se:
-   - O arquivo existe no caminho correto
-   - O alias está configurado corretamente
-   - O nome do arquivo está correto (maiúsculas/minúsculas)
-
-   Adicione "skip-import-check" para ignorar.
-```
-
-**Benefícios:**
-- ❌ Previne erros: "Module not found: Can't resolve '@/...'"
-- ⚡ Detecta antes de rodar o projeto
-- 🎯 Garante que Claude não invente imports inexistentes
-
----
-
-### 3. **Lint After Edit Hook** (`lint-after-edit-hook.js`)
-Roda ESLint automaticamente após edições de código.
-
-**Quando roda:** Após operações de `Edit`, `Write` ou `Bash` (`tool-use`)
-
-**O que faz:**
-- 🔍 Roda lint **apenas nos arquivos editados** (rápido!)
-- 🛡️ **Detecta comandos Bash perigosos** (`mv`, `cp`, `rm`, `sed`, `awk`, etc)
-- 🔄 Se usar Bash para mover/copiar arquivos, roda lint no projeto completo
-- ⚠️ Detecta erros e warnings do ESLint
-- 🔴 **Bloqueia apenas em caso de ERROS** (warnings não bloqueiam)
-- ⏭️ Pula automaticamente arquivos não-lintáveis (.json, .css, etc)
-- 💡 Permite bypass com palavra-chave `skip-lint`
-
-**Exemplo:**
-```bash
-# Lint detectou erro
-🔴 2 erro(s)
-🟡 3 warning(s)
-
-Primeiros erros:
-...
-
-💡 Execute "pnpm lint:fix" para corrigir automaticamente
-   ou adicione "skip-lint" na mensagem para ignorar.
-```
-
-**Comportamento:**
-- ✅ **Warnings**: Mostra mas permite continuar
-- 🛑 **Erros**: Bloqueia até corrigir
-- ⚡ **Performance**: Só verifica arquivos `.ts`, `.tsx`, `.js`, `.jsx` editados
-- 🔄 **Comandos Bash**: Se detectar `mv`, `cp`, `rm`, etc., roda lint no projeto completo por segurança
-
-**Comandos Bash detectados:**
-- `mv` (mover arquivos/pastas)
-- `cp` (copiar arquivos/pastas)
-- `rm` (remover arquivos/pastas)
-- `mkdir` (criar diretórios)
-- `touch` (criar arquivos)
-- `sed`, `awk` (editar arquivos via Bash)
-
----
-
-## 🚀 Setup
-
-### Estrutura de Arquivos
+## 🔧 How It Works
 
 ```
-.claude/
-├── hooks.json                      # Configuração dos hooks
-├── check-dependencies-hook.js      # Hook de dependências
-├── validate-imports-hook.js        # Hook de validação de imports
-├── lint-after-edit-hook.js         # Hook de lint
-├── tool-use-orchestrator.js        # Orquestrador de múltiplos hooks
-└── README.md                       # Este arquivo
+Claude runs Bash → orchestrator.js
+                   ├─ check-dependencies.js ✓ Validates package install
+                   ├─ validate-imports.js   (skips - not Edit/Write)
+                   ├─ lint-after-edit.js    (skips - not Edit/Write)
+                   └─ format-on-edit.js     (skips - not Edit/Write)
+
+Claude edits file → orchestrator.js
+                   ├─ check-dependencies.js (skips - not Bash)
+                   ├─ validate-imports.js   ✓ Checks imports exist
+                   ├─ lint-after-edit.js    ✓ Runs ESLint --fix
+                   └─ format-on-edit.js     ✓ Runs Prettier
 ```
 
-### Como Funciona
+Each hook is smart enough to skip if it doesn't apply to the current tool.
 
-Os hooks são executados automaticamente pelo Claude Code em momentos específicos:
+## ✅ Example Validations
 
-1. **`user-prompt-submit`**: Antes de processar cada mensagem do usuário
-2. **`tool-use`**: Após usar ferramentas de edição (`Edit`, `Write`, `Bash`)
+**Blocked:**
+- `pnpm add etherum` → 🚨 TYPO: did you mean "ethereum"?
+- `pnpm add unknown-pkg` → ⚠️ Package not in trusted list
+- `import { X } from "@/missing"` → ❌ File doesn't exist
+- ESLint errors that can't be auto-fixed → ❌ Fix errors first
 
-O hook `tool-use` usa um **orquestrador** que executa múltiplos checks em sequência:
-- Primeiro valida imports (validate-imports-hook)
-- Depois roda o lint (lint-after-edit-hook)
-- Se qualquer um falhar, o processo é bloqueado
+**Allowed:**
+- `pnpm add lodash` → ✅ Trusted package
+- `pnpm add unknown-pkg --force` → ✅ Force bypass
+- Valid imports → ✅ Auto-formatted with Prettier
 
-### Configuração (`hooks.json`)
+## 🛠️ Creating Custom Hooks
 
-```json
-{
-  "user-prompt-submit": {
-    "command": "node",
-    "args": [".claude/check-dependencies-hook.js"],
-    "description": "Prevent modifying dependencies with <10 days"
-  },
-  "tool-use": {
-    "command": "node",
-    "args": [".claude/tool-use-orchestrator.js"],
-    "description": "Run multiple checks: import validation + lint"
+### 1. Create hook file
+
+```javascript
+const stdin = require('process').stdin;
+const chunks = [];
+
+stdin.on('data', chunk => chunks.push(chunk));
+stdin.on('end', () => {
+  const { event, toolName, toolInput } = JSON.parse(Buffer.concat(chunks));
+
+  // Skip if not relevant
+  if (event !== 'PostToolUse' || toolName !== 'Edit') {
+    console.log(JSON.stringify({ status: 'ok' }));
+    process.exit(0);
   }
+
+  // Your validation logic
+  const isValid = true; // Replace with actual check
+
+  if (!isValid) {
+    console.log(JSON.stringify({
+      status: 'blocked',
+      message: '❌ Validation failed'
+    }));
+    process.exit(1);
+  }
+
+  console.log(JSON.stringify({ status: 'ok' }));
+  process.exit(0);
+});
+```
+
+### 2. Add to orchestrator
+
+```javascript
+const hooks = [
+  'check-dependencies.js',
+  'validate-imports.js',
+  'lint-after-edit.js',
+  'format-on-edit.js',
+  'your-hook.js'  // Add here
+];
+```
+
+### 3. Test it
+
+```bash
+echo '{"event":"PostToolUse","toolName":"Edit","toolInput":{"file_path":"test.ts"}}' | node your-hook.js
+```
+
+## 📚 Hook Input Format
+
+```typescript
+{
+  event: "PostToolUse";
+  toolName: "Edit" | "Write" | "Bash" | "Read" | ...;
+  toolInput: {
+    file_path?: string;      // For Edit/Write
+    command?: string;        // For Bash
+    new_string?: string;     // For Edit
+    content?: string;        // For Write
+  };
 }
 ```
 
----
+## 🤝 Contributing
 
-## 🎯 Palavras-chave de Bypass
+Want to add hooks for other languages/frameworks?
 
-| Hook | Palavra-chave | Uso |
-|------|---------------|-----|
-| Dependency Check | `force` | Instalar pacote não confiável |
-| Import Validation | `skip-import-check` | Pular validação de imports |
-| Lint After Edit | `skip-lint` | Pular verificação de lint |
+1. Create a folder: `python/`, `go/`, `rust/`, etc.
+2. Add your hooks and orchestrator
+3. Create a README
+4. Submit a PR!
 
-**Exemplo:**
-```bash
-# Dependency Check
-"instalar biblioteca-nova force"
+## 📝 License
 
-# Import Validation
-"adicionar import do componente skip-import-check"
-
-# Lint After Edit
-"adicionar console.log no arquivo skip-lint"
-
-# Múltiplos bypasses
-"fazer mudanças skip-import-check skip-lint"
-```
+MIT - Free to use in any project
 
 ---
 
-## 🔧 Comandos Úteis
-
-```bash
-# Testar hook de dependências
-echo '{"prompt":"instalar axios","tool_uses":[]}' | node .claude/check-dependencies-hook.js
-
-# Testar hook de imports
-echo '{"prompt":"test","tool_uses":[{"tool_name":"Edit","tool_input":{"file_path":"src/test.tsx","new_string":"import { X } from \"@/fake/path\""}}]}' | node .claude/validate-imports-hook.js
-
-# Testar orquestrador completo
-echo '{"prompt":"test","tool_uses":[{"tool_name":"Edit","tool_input":{"file_path":"src/test.tsx","new_string":"import { X } from \"@/fake/path\""}}]}' | node .claude/tool-use-orchestrator.js
-
-# Rodar lint manualmente
-pnpm lint
-
-# Corrigir erros de lint automaticamente
-pnpm lint:fix
-
-# Verificar tipos TypeScript
-pnpm type-check
-```
-
----
-
-## 📝 Notas
-
-### Por que validar imports?
-
-Claude às vezes "inventa" imports de arquivos que não existem, causando erros de build como:
-```
-Module not found: Can't resolve '@/shared/components/ui/badge'
-```
-
-O Import Validation Hook previne isso verificando se todos os arquivos importados realmente existem no projeto **antes** de salvar, economizando tempo de debug.
-
-### Por que apenas erros bloqueiam no Lint Hook?
-
-**Warnings** são avisos que não quebram o código. Bloquear em warnings travaria o desenvolvimento desnecessariamente.
-
-**Erros** indicam problemas reais que impedem o código de funcionar corretamente.
-
-Se você quiser que warnings também bloqueiem, ajuste a configuração do ESLint em `eslint.config.mjs`.
-
-### Por que verificar dependências?
-
-Ataques de supply chain (typosquatting, pacotes maliciosos) são comuns no npm. Este hook adiciona uma camada de proteção validando pacotes antes da instalação.
-
-### Performance
-
-O Lint Hook **só roda nos arquivos editados**, não no projeto inteiro. Isso garante velocidade mesmo em grandes projetos.
-
----
-
-## 🤝 Contribuindo
-
-Para adicionar um novo hook:
-
-1. Crie o arquivo `.js` em `.claude/`
-2. Adicione a configuração em `hooks.json`
-3. Documente aqui no README
-4. Teste manualmente antes de commitar
-
----
-
-**Última atualização:** Outubro 2025
+**Questions?** Check the [Claude Code docs](https://docs.claude.com/claude-code) or open an issue.

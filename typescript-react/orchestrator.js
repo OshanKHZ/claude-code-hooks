@@ -12,8 +12,10 @@ stdin.on('end', async () => {
 
   // Lista de hooks a executar em ordem
   const hooks = [
-    'validate-imports-hook.js',
-    'lint-after-edit-hook.js'
+    'check-dependencies.js',   // Valida instalações de pacotes (Bash commands)
+    'validate-imports.js',     // Valida imports (Edit/Write)
+    'lint-after-edit.js',      // Lint com ESLint (Edit/Write)
+    'format-on-edit.js'        // Formata com Prettier (Edit/Write)
   ];
 
   for (const hookFile of hooks) {

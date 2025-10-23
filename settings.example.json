@@ -1,0 +1,12 @@
+{
+  "$schema": "https://docs.claude.com/schemas/settings.json",
+  "hooks": [
+    {
+      "name": "orchestrator",
+      "description": "Orchestrates: dependency validation → import validation → linting → formatting",
+      "event": "PostToolUse",
+      "command": "node /absolute/path/to/hooks/typescript-react/orchestrator.js"
+    }
+  ],
+  "_comment": "Replace '/absolute/path/to/hooks' with the actual path where you copied the hooks folder"
+}
