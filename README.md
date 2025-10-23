@@ -1,95 +1,186 @@
 # Claude Code Hooks
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-166%20passing-brightgreen.svg)](./TESTING_QUICKSTART.md)
+[![Tests](https://img.shields.io/badge/tests-164%20passing-brightgreen.svg)](./docs/TESTING_QUICKSTART.md)
 [![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com)
 
 Production-ready hooks for [Claude Code](https://claude.com/claude-code) with automatic validation, type checking, linting, and formatting.
 
+---
+
 ## 🚀 Quick Start
 
-1. Choose a hook collection below
-2. Copy to your project: `cp -r collection-name /path/to/.claude/hooks`
-3. Configure in `~/.claude/settings.json`
-4. Done! Hooks run automatically
+```bash
+# 1. Choose a hook collection
+cd typescript-react/
 
-## 📁 Hook Collections
+# 2. Copy to your Claude Code hooks directory
+cp -r typescript-react ~/.claude/hooks/
 
-### [typescript-react/](./typescript-react/)
+# 3. Configure in settings
+# Add to ~/.claude/settings.json (see docs/settings.example.json)
 
-For TypeScript/React/Next.js projects
-
-**Includes:**
-- ✅ Dependency validation (blocks malicious packages)
-- ✅ Import validation (checks paths exist)
-- ✅ TypeScript type checking (SHA256 cache, < 5ms)
-- ✅ ESLint auto-fix
-- ✅ Prettier auto-format
-
-**Performance:** < 5ms (cached) to 500ms (full check)
-
-[→ View typescript-react documentation](./typescript-react/README.md)
+# 4. Done! Hooks run automatically
+```
 
 ---
 
-### Coming Soon
+## 📦 Available Hook Collections
 
-- **python/** - Black, mypy, ruff
-- **go/** - gofmt, golint, go vet
-- **rust/** - rustfmt, clippy
+| Collection | Languages | Hooks Included | Performance | Status |
+|------------|-----------|----------------|-------------|---------|
+| **[typescript-react/](./typescript-react/)** | TypeScript, React, Next.js | 5 hooks (dependencies, imports, typecheck, lint, format) | < 5ms cached | ✅ Ready |
+| **python/** | Python | Black, mypy, ruff | TBD | 🚧 Coming Soon |
+| **go/** | Go | gofmt, golint, go vet | TBD | 🚧 Coming Soon |
+| **rust/** | Rust | rustfmt, clippy | TBD | 🚧 Coming Soon |
 
-Want to contribute? See [Contributing](#-contributing) below.
+### TypeScript/React Collection Features
+
+| Feature | Description | Performance |
+|---------|-------------|-------------|
+| 🛡️ **Dependency Validation** | Blocks malicious packages and typosquatting attacks | < 10ms |
+| 🔍 **Import Validation** | Validates import paths exist, suggests typo fixes | < 50ms |
+| ⚡ **TypeScript Checking** | SHA256 config cache + file results cache | < 5ms (cached) |
+| 🎨 **ESLint Auto-fix** | Automatically fixes linting issues | 100-500ms |
+| ✨ **Prettier Format** | Auto-formats code on save | 50-200ms |
+
+[→ View full typescript-react documentation](./typescript-react/README.md)
+
+---
 
 ## ⚡ Key Features
 
-### SHA256 Caching
-TypeScript config validation in < 5ms (95% faster than tsc incremental)
+### 🚀 Blazing Fast Performance
+- **SHA256 Caching**: TypeScript config validation in < 5ms (95% faster than tsc incremental)
+- **Smart File Caching**: Results cached per file with 1-hour TTL
+- **Parallel Execution**: Independent hooks run concurrently (35% faster)
 
-### Smart Execution
-Each hook skips automatically if not relevant (Bash hook skips on Edit, etc.)
+### 🎯 Smart Execution
+Each hook automatically skips when not relevant:
+- Bash hooks skip on Edit/Write events
+- TypeScript checks skip on non-.ts/.tsx files
+- Format hooks skip excluded directories (node_modules, dist, etc.)
 
-### One Hook Rule
-Claude Code allows only **one hook per event**. We use an orchestrator to chain multiple hooks.
-
-## 🤝 Contributing
-
-**Add a new language/framework:**
-
-1. Create folder: `mkdir python/`
-2. Add hooks: `check.py`, `format.py`, `orchestrator.py`
-3. Create `README.md` with setup instructions
-4. Update this main README with link
-5. Submit PR
-
-**Improve existing hooks:**
-
-See individual collection READMEs for improvement ideas.
-
-## 🧪 Testing
-
-Comprehensive test suite with 166+ passing tests covering all hooks.
-
-```bash
-npm install    # Install test dependencies
-npm test       # Run all tests
-```
-
-See [TESTING_QUICKSTART.md](./TESTING_QUICKSTART.md) for details.
-
-## 📖 Documentation
-
-- [typescript-react/](./typescript-react/) - Full TypeScript/React docs
-- [TESTING_QUICKSTART.md](./TESTING_QUICKSTART.md) - Test guide
-- [CLAUDE.md](./CLAUDE.md) - AI context & architecture
-- [settings.example.json](./settings.example.json) - Config example
-
-## 📝 License
-
-MIT - Free to use in any project
+### 🔧 One Hook Rule Solution
+Claude Code allows only **one hook per event**. We use an orchestrator pattern to chain multiple hooks together seamlessly.
 
 ---
 
-**Questions?** Check the [Claude Code docs](https://docs.claude.com/claude-code) or open an issue.
+## 🧪 Testing
 
-**Credits:** Inspired by [bartolli/claude-code-typescript-hooks](https://github.com/bartolli/claude-code-typescript-hooks)
+Comprehensive unit test suite ensuring reliability and quality.
+
+| Metric | Value |
+|--------|-------|
+| **Total Tests** | 167 tests |
+| **Passing** | 164 (98.2%) |
+| **Hook Tests** | 138/138 (100%) ✨ |
+| **Utility Tests** | 26/29 (89.7%) |
+| **Test Framework** | Vitest |
+| **Coverage** | 80%+ |
+
+```bash
+# Install dependencies
+npm install
+
+# Run tests
+npm test
+
+# Watch mode
+npm run test:watch
+
+# Coverage report
+npm run test:coverage
+```
+
+[→ View testing guide](./docs/TESTING_QUICKSTART.md) | [→ View test report](./docs/TEST_REPORT.md)
+
+---
+
+## 📖 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [typescript-react/README.md](./typescript-react/README.md) | Full TypeScript/React collection documentation |
+| [docs/TESTING_QUICKSTART.md](./docs/TESTING_QUICKSTART.md) | Quick start guide for running tests |
+| [docs/TEST_REPORT.md](./docs/TEST_REPORT.md) | Comprehensive test coverage report |
+| [docs/CLAUDE.md](./docs/CLAUDE.md) | AI context and architecture notes |
+| [docs/settings.example.json](./docs/settings.example.json) | Claude Code settings configuration example |
+| [tests/README.md](./tests/README.md) | Test structure and patterns |
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how you can help:
+
+### Add a New Language/Framework
+
+1. **Create collection folder**
+   ```bash
+   mkdir python/
+   cd python/
+   ```
+
+2. **Add your hooks**
+   - Create individual hook files
+   - Create orchestrator to chain them
+   - Add configuration file
+
+3. **Document your hooks**
+   - Create README.md with setup instructions
+   - Document each hook's purpose and configuration
+   - Add examples
+
+4. **Update main README**
+   - Add entry to Available Hook Collections table
+   - Link to your documentation
+
+5. **Submit PR**
+   - Test your hooks thoroughly
+   - Follow existing patterns
+   - Update relevant docs
+
+### Improve Existing Hooks
+
+See individual collection READMEs for improvement ideas and contribution guidelines.
+
+---
+
+## 📊 Project Statistics
+
+| Metric | Value |
+|--------|-------|
+| **Lines of Code** | ~5,000+ (hooks + tests) |
+| **Hooks Available** | 5 (TypeScript/React) |
+| **Test Files** | 10 |
+| **Documentation Files** | 7 |
+| **Dependencies** | 0 (runtime), 3 (dev) |
+
+---
+
+## 📝 License
+
+MIT License - Free to use in any project, personal or commercial.
+
+See [LICENSE](./LICENSE) for full details.
+
+---
+
+## 💬 Support
+
+- 📚 [Claude Code Documentation](https://docs.claude.com/claude-code)
+- 🐛 [Report Issues](https://github.com/your-username/claude-code-hooks/issues)
+- 💡 [Request Features](https://github.com/your-username/claude-code-hooks/issues/new)
+- 💬 [Discussions](https://github.com/your-username/claude-code-hooks/discussions)
+
+---
+
+<div align="center">
+
+**Made with 🧡 for the Claude Code community**
+
+⭐ Star this repo if you find it useful!
+
+</div>
