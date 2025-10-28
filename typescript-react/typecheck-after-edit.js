@@ -2,12 +2,23 @@ const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const { getProjectRoot, detectPackageManager, isCommandAvailable } = require('./shared-utils');
+
 const stdin = process.stdin;
 const chunks = [];
 
-const CACHE_FILE = path.join(__dirname, 'tsconfig-cache.json');
-const RESULTS_CACHE_FILE = path.join(__dirname, 'typecheck-results-cache.json');
-const PROJECT_ROOT = path.resolve(__dirname, '../..');
+// Get project root dynamically
+const PROJECT_ROOT = getProjectRoot();
+
+// Store cache files in project directory instead of hooks directory
+const CACHE_DIR = path.join(PROJECT_ROOT, '.claude', 'cache');
+const CACHE_FILE = path.join(CACHE_DIR, 'tsconfig-cache.json');
+const RESULTS_CACHE_FILE = path.join(CACHE_DIR, 'typecheck-results-cache.json');
+
+// Ensure cache directory exists
+if (!fs.existsSync(CACHE_DIR)) {
+  fs.mkdirSync(CACHE_DIR, { recursive: true });
+}
 
 /**
  * TypeScript Results Cache
@@ -170,19 +181,32 @@ class TypeScriptConfigCache {
  */
 function typeCheckFile(filePath, configPath) {
   try {
+    // Check if TypeScript is available
+    if (!isCommandAvailable('tsc')) {
+      return {
+        success: true,
+        output: '',
+        warning: 'TypeScript not found. Install it with: npm install -D typescript'
+      };
+    }
+
+    const packageManager = detectPackageManager();
+
+    // Build command based on package manager
+    const tscCmd = packageManager === 'npm'
+      ? `npx tsc --noEmit --skipLibCheck --incremental --project "${configPath}"`
+      : `${packageManager} exec tsc --noEmit --skipLibCheck --incremental --project "${configPath}"`;
+
     // Strategy: Use incremental compilation mode for faster checks
     // 1. Use --incremental to enable incremental compilation
     // 2. tsc will use .tsbuildinfo cache file
     // 3. Only recompile changed files
-    const result = execSync(
-      `pnpm exec tsc --noEmit --skipLibCheck --incremental --project "${configPath}"`,
-      {
-        cwd: PROJECT_ROOT,
-        encoding: 'utf8',
-        stdio: 'pipe',
-        timeout: 15000, // 15s timeout
-      }
-    );
+    const result = execSync(tscCmd, {
+      cwd: PROJECT_ROOT,
+      encoding: 'utf8',
+      stdio: 'pipe',
+      timeout: 15000, // 15s timeout
+    });
 
     return { success: true, output: '', fromCache: true };
   } catch (error) {

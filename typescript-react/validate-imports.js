@@ -1,13 +1,54 @@
 const fs = require('fs');
 const path = require('path');
+const { getProjectRoot } = require('./shared-utils');
+
 const stdin = process.stdin;
 const chunks = [];
 
-// Mapeamento de aliases do tsconfig
-const ALIASES = {
-  '@/': 'src/',
-  '@': 'src/'
-};
+/**
+ * Load path aliases from tsconfig.json
+ * Falls back to common defaults if tsconfig not found
+ */
+function loadPathAliases() {
+  const projectRoot = getProjectRoot();
+  const tsconfigPath = path.join(projectRoot, 'tsconfig.json');
+
+  // Default aliases
+  const defaultAliases = {
+    '@/': 'src/',
+    '@': 'src/'
+  };
+
+  if (!fs.existsSync(tsconfigPath)) {
+    return defaultAliases;
+  }
+
+  try {
+    const tsconfig = JSON.parse(fs.readFileSync(tsconfigPath, 'utf8'));
+    const paths = tsconfig?.compilerOptions?.paths;
+
+    if (!paths) {
+      return defaultAliases;
+    }
+
+    // Convert tsconfig paths to our alias format
+    const aliases = {};
+    for (const [alias, targets] of Object.entries(paths)) {
+      // Remove /* from alias and target
+      const cleanAlias = alias.replace(/\/\*$/, '/').replace(/\*$/, '');
+      const cleanTarget = targets[0].replace(/\/\*$/, '/').replace(/\*$/, '');
+      aliases[cleanAlias] = cleanTarget;
+    }
+
+    return aliases;
+  } catch (error) {
+    console.error('Failed to parse tsconfig.json:', error.message);
+    return defaultAliases;
+  }
+}
+
+// Load aliases from tsconfig or use defaults
+const ALIASES = loadPathAliases();
 
 function resolveAlias(importPath) {
   for (const [alias, realPath] of Object.entries(ALIASES)) {
@@ -62,9 +103,9 @@ stdin.on('data', (chunk) => chunks.push(chunk));
 stdin.on('end', async () => {
   const input = JSON.parse(Buffer.concat(chunks).toString());
   const { event, toolName, toolInput } = input;
-  const projectRoot = path.resolve(__dirname, '../..');
+  const projectRoot = getProjectRoot();
 
-  // Só processa Edit e Write
+  // Only process Edit and Write
   if (event !== 'PostToolUse' || !['Edit', 'Write'].includes(toolName)) {
     console.log(JSON.stringify({ status: 'ok' }));
     process.exit(0);
@@ -73,7 +114,7 @@ stdin.on('end', async () => {
 
   const filePath = toolInput?.file_path || '';
 
-  // Apenas valida arquivos TS/TSX/JS/JSX
+  // Only validate TS/TSX/JS/JSX files
   if (!/\.(ts|tsx|js|jsx)$/.test(filePath)) {
     console.log(JSON.stringify({ status: 'ok' }));
     process.exit(0);

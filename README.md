@@ -12,17 +12,28 @@ Production-ready hooks for [Claude Code](https://claude.com/claude-code) with au
 ## 🚀 Quick Start
 
 ```bash
-# 1. Choose a hook collection
-cd typescript-react/
+# 1. Copy hooks to your project
+cp -r typescript-react /path/to/your/project/.claude/hooks/
 
-# 2. Copy to your Claude Code hooks directory
-cp -r typescript-react ~/.claude/hooks/
+# 2. Configure in settings
+# Add to ~/.claude/settings.json:
+{
+  "hooks": [
+    {
+      "name": "orchestrator",
+      "event": "PostToolUse",
+      "command": "node /absolute/path/to/your/project/.claude/hooks/typescript-react/orchestrator.js"
+    }
+  ]
+}
 
-# 3. Configure in settings
-# Add to ~/.claude/settings.json (see docs/settings.example.json)
+# 3. Install required dependencies in your project
+npm install -D typescript eslint prettier
 
 # 4. Done! Hooks run automatically
 ```
+
+**Note:** Hooks should be installed in your project's `.claude/hooks/` directory, not globally, for proper path resolution.
 
 ---
 
@@ -40,10 +51,18 @@ cp -r typescript-react ~/.claude/hooks/
 | Feature | Description | Performance |
 |---------|-------------|-------------|
 | 🛡️ **Dependency Validation** | Blocks malicious packages and typosquatting attacks | < 10ms |
-| 🔍 **Import Validation** | Validates import paths exist, suggests typo fixes | < 50ms |
+| 🔍 **Import Validation** | Validates import paths (reads tsconfig.json paths) | < 50ms |
 | ⚡ **TypeScript Checking** | SHA256 config cache + file results cache | < 5ms (cached) |
 | 🎨 **ESLint Auto-fix** | Automatically fixes linting issues | 100-500ms |
 | ✨ **Prettier Format** | Auto-formats code on save | 50-200ms |
+
+**✨ New in v2.0:**
+- 🌍 **Full English support** - All error messages now in English
+- 📦 **Package manager detection** - Auto-detects npm/yarn/pnpm
+- 🔍 **Dynamic project root** - Works anywhere in your project structure
+- 🗂️ **Smart tsconfig parsing** - Reads actual path aliases from your config
+- ⚙️ **Dependency checks** - Graceful handling when tools not installed
+- 🗄️ **Better caching** - Cache files stored in `.claude/cache/` per project
 
 [→ View full typescript-react documentation](./typescript-react/README.md)
 

@@ -8,9 +8,9 @@
  * Purpose: Ensure consistent code formatting across the codebase
  */
 
-import { execSync } from "child_process";
-import { readFileSync, existsSync } from "fs";
-import path from "path";
+const { execSync } = require("child_process");
+const { readFileSync, existsSync } = require("fs");
+const path = require("path");
 
 const HOOK_NAME = "format-on-edit";
 

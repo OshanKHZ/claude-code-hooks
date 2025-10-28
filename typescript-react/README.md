@@ -18,11 +18,28 @@ Production-ready hooks for TypeScript React/Next.js projects with automatic vali
 ### 1. Install in Your Project
 
 ```bash
-# Copy to your project
+# Copy hooks to your project's .claude directory
 cp -r typescript-react /path/to/your/project/.claude/hooks/
+
+# The hooks MUST be at: <project-root>/.claude/hooks/typescript-react/
 ```
 
-### 2. Configure Claude Code
+### 2. Install Dependencies
+
+```bash
+# Install required tools in your project (not globally)
+npm install -D typescript eslint prettier
+
+# Or with yarn
+yarn add -D typescript eslint prettier
+
+# Or with pnpm
+pnpm add -D typescript eslint prettier
+```
+
+**Note:** The hooks will auto-detect which package manager you're using!
+
+### 3. Configure Claude Code
 
 Edit `~/.claude/settings.json`:
 
@@ -32,23 +49,26 @@ Edit `~/.claude/settings.json`:
     {
       "name": "orchestrator",
       "event": "PostToolUse",
-      "command": "node /path/to/.claude/hooks/orchestrator.js"
+      "command": "node /absolute/path/to/your/project/.claude/hooks/typescript-react/orchestrator.js"
     }
   ]
 }
 ```
 
-### 3. Done!
+**Important:** Use the absolute path to your project, not `~` or relative paths.
+
+### 4. Done!
 
 All validations run automatically when Claude edits files or runs commands.
 
 ## 📋 Requirements
 
-- **TypeScript** (for typecheck)
-- **ESLint** (for linting)
-- **Prettier** (for formatting)
+- **Node.js** >= 18.0.0
+- **TypeScript** (optional - gracefully skipped if not installed)
+- **ESLint** (optional - gracefully skipped if not installed)
+- **Prettier** (optional - gracefully skipped if not installed)
 
-Install with: `pnpm add -D typescript eslint prettier`
+**Note:** Hooks will work even if some tools are missing - they'll just skip those checks and show a warning.
 
 ## 🔧 How It Works
 

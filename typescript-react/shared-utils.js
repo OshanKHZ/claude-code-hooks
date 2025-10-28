@@ -81,9 +81,25 @@ function isCodeFile(filePath) {
 }
 
 /**
- * Get project root
+ * Get project root by searching for package.json
+ * Walks up the directory tree from the hooks directory
  */
 function getProjectRoot() {
+  let currentDir = __dirname;
+
+  // Walk up the directory tree
+  while (currentDir !== path.parse(currentDir).root) {
+    const packageJsonPath = path.join(currentDir, 'package.json');
+
+    if (fs.existsSync(packageJsonPath)) {
+      return currentDir;
+    }
+
+    currentDir = path.dirname(currentDir);
+  }
+
+  // Fallback to old behavior if package.json not found
+  console.warn('⚠️  Warning: Could not find package.json, using fallback path detection');
   return path.resolve(__dirname, '../..');
 }
 
@@ -110,6 +126,43 @@ function formatError(error) {
   return output;
 }
 
+/**
+ * Detect which package manager is used in the project
+ * @returns {'pnpm' | 'yarn' | 'npm'} The detected package manager
+ */
+function detectPackageManager() {
+  const projectRoot = getProjectRoot();
+
+  // Check for lock files
+  if (fs.existsSync(path.join(projectRoot, 'pnpm-lock.yaml'))) {
+    return 'pnpm';
+  }
+  if (fs.existsSync(path.join(projectRoot, 'yarn.lock'))) {
+    return 'yarn';
+  }
+  if (fs.existsSync(path.join(projectRoot, 'package-lock.json'))) {
+    return 'npm';
+  }
+
+  // Default to npm
+  return 'npm';
+}
+
+/**
+ * Check if a command is available in the system
+ * @param {string} command - The command to check
+ * @returns {boolean} True if command is available
+ */
+function isCommandAvailable(command) {
+  const { execSync } = require('child_process');
+  try {
+    execSync(`${command} --version`, { stdio: 'ignore' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 module.exports = {
   loadConfig,
   readStdin,
@@ -119,5 +172,7 @@ module.exports = {
   isCodeFile,
   getProjectRoot,
   normalizePath,
-  formatError
+  formatError,
+  detectPackageManager,
+  isCommandAvailable
 };
